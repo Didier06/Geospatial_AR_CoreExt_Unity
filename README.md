@@ -13,7 +13,6 @@ This project is a test application developed with Unity to explore the features 
 
 The Unity project is located in the `ProjectExamples` folder.
 
-
 ### Main Scenes
 
 Several scenes are available to test different placement and tracking features:
@@ -28,15 +27,18 @@ Several scenes are available to test different placement and tracking features:
 ## 🚀 Installation and Configuration
 
 1. **Open the project**:
+
 * Launch Unity Hub.
 * Open the project's root folder located in `ProjectExamples`.
 
-2. **Configure the API Key**:
+1. **Configure the API Key**:
     * For Geospatial features to work, you must have a valid Google Cloud API key with **ARCore API** and **Geospatial API** enabled.
+
 * In Unity, go to `Edit > Project Settings > XR Plug-in Management > ARCore Extensions`.
 * Ensure your API key is entered in the corresponding field for Android.
 
-3. **Build on Android:**
+1. **Build on Android:**
+
 * Connect your Android device in developer mode.
 * Go to `File > Build Settings`.
 * Select the scene you want to test (add it to the list if necessary).
@@ -53,16 +55,20 @@ Several scenes are available to test different placement and tracking features:
 The `TestGPS_4` scene features a dynamic loading system powered by MQTT.
 
 ### Configuration
+
 * **Broker**: `mqtt.univ-cotedazur.fr` (Port 8443, SSL/TLS)
 * **Topic IN (Commands)**: `FABLAB_21_22/unity/testgps/in`
 * **Topic OUT (Feedback)**: `FABLAB_21_22/unity/testgps/out`
 
 ### Remote Control via JSON
+
 To place or move objects, send a JSON payload to the **IN** topic.
+
 * **`name`**: Must match exactly the name of a prefab in the `Prefab Library` (script *Listeprefabs2*).
 * **`altitudeOffset`**: Height relative to the detected ground/VPS anchor.
 
 **JSON Example:**
+
 ```json
 {
   "items": [
