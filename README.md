@@ -22,6 +22,7 @@ Several scenes are available to test different placement and tracking features:
 * **`Scenes/TestGPS_2.unity`**: Additional scene for location testing.
 * **`Scenes/TestGPS_3.unity`**: Advanced (or alternative) scene for geospatial placement.
 * **`Scenes/Tap_To_Place.unity`**: Scene that likely allows objects to be placed manually via touch interaction (raycasting).
+* **`Scenes/TestGPS_4.unity`**: Scene designed for dynamic object placement via MQTT. It listens for JSON commands to spawn and move prefabs at runtime.
 * **`Samples/ARCore Extensions/.../GeospatialArf6.unity`**: The official example provided by Google for AR Foundation 6.
 
 ## 🚀 Installation and Configuration
@@ -46,6 +47,40 @@ Several scenes are available to test different placement and tracking features:
 * When launching the application, accept the permissions for **Camera** and **Location** (precise).
 * The system will attempt to locate itself (VPS - Visual Positioning System). It is recommended that you be outdoors in an area covered by Google Street View for optimal accuracy.
 * Once located, the objects defined in the scene should appear at their respective geographical coordinates.
+
+## 📡 MQTT Control (TestGPS_4)
+
+The `TestGPS_4` scene features a dynamic loading system powered by MQTT.
+
+### Configuration
+* **Broker**: `mqtt.univ-cotedazur.fr` (Port 8443, SSL/TLS)
+* **Topic IN (Commands)**: `FABLAB_21_22/unity/testgps/in`
+* **Topic OUT (Feedback)**: `FABLAB_21_22/unity/testgps/out`
+
+### Remote Control via JSON
+To place or move objects, send a JSON payload to the **IN** topic.
+* **`name`**: Must match exactly the name of a prefab in the `Prefab Library` (script *Listeprefabs2*).
+* **`altitudeOffset`**: Height relative to the detected ground/VPS anchor.
+
+**JSON Example:**
+```json
+{
+  "items": [
+    {
+      "name": "Cylinder",
+      "latitude": 43.80584,
+      "longitude": 7.305819,
+      "altitudeOffset": 3
+    },
+    {
+      "name": "Cube",
+      "latitude": 43.80580,
+      "longitude": 7.30616,
+      "altitudeOffset": -1.5
+    }
+  ]
+}
+```
 
 ## ⚠️ Important Notes
 

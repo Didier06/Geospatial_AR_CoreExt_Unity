@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 15003, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Test_Tap_To_Place
+  m_Name: TestGPS_4
   m_EditorClassIdentifier: UnityEditor.dll::UnityEditor.Build.Profile.BuildProfile
   m_AssetVersion: 1
   m_BuildTarget: 13
@@ -27,7 +27,7 @@ MonoBehaviour:
   - m_enabled: 0
     m_path: Assets/Scenes/TestGPS_3.unity
   - m_enabled: 1
-    m_path: Assets/Scenes/Tap_To_Place.unity
+    m_path: Assets/Scenes/TestGPS_4.unity
   m_HasScriptingDefines: 0
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:
@@ -44,7 +44,7 @@ MonoBehaviour:
     - line: '|   useOnDemandResources: 0'
     - line: '|   accelerometerFrequency: 60'
     - line: '|   companyName: FablabUniCA'
-    - line: '|   productName: Tap_To_Place'
+    - line: '|   productName: TestGPS_4'
     - line: '|   defaultCursor: {instanceID: 0}'
     - line: '|   cursorHotspot: {x: 0, y: 0}'
     - line: '|   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b:
@@ -200,7 +200,7 @@ MonoBehaviour:
     - line: '|   androidMaxAspectRatio: 2.1'
     - line: '|   androidMinAspectRatio: 1'
     - line: '|   applicationIdentifier:'
-    - line: '|     Android: com.FablabUniCA.Tap_To_Place'
+    - line: '|     Android: com.FablabUniCA.TestGPS_3'
     - line: '|     Standalone: com.DefaultCompany.GeoAPITest'
     - line: '|     iPhone: com.DefaultCompany.GeoAPITest'
     - line: '|   buildNumber:'
@@ -334,7 +334,7 @@ MonoBehaviour:
     - line: '|   - m_BuildTarget: '
     - line: '|     m_Icons:'
     - line: '|     - serializedVersion: 2'
-    - line: '|       m_Icon: {fileID: 2800000, guid: 8511a3a1d58364d7da8521c56be3feaa,
+    - line: '|       m_Icon: {fileID: 2800000, guid: 3b5f65b690296f146877a74d1b7371b8,
         type: 3}'
     - line: '|       m_Width: 128'
     - line: '|       m_Height: 128'
@@ -403,9 +403,9 @@ MonoBehaviour:
     - line: '|       m_Kind: 1'
     - line: '|       m_SubKind: '
     - line: '|     - m_Textures:'
-    - line: '|       - {fileID: 2800000, guid: 8511a3a1d58364d7da8521c56be3feaa,
+    - line: '|       - {fileID: 2800000, guid: 3b5f65b690296f146877a74d1b7371b8,
         type: 3}'
-    - line: '|       - {fileID: 2800000, guid: 8511a3a1d58364d7da8521c56be3feaa,
+    - line: '|       - {fileID: 2800000, guid: 3b5f65b690296f146877a74d1b7371b8,
         type: 3}'
     - line: '|       m_Width: 432'
     - line: '|       m_Height: 432'
