@@ -14,3 +14,12 @@ https://console.cloud.google.com/cloud-hub/home;board-filter=type:APP_HUB,key:ap
 
 Allez dans API services > identifiants
 
+
+Les mots de passe mqtt sont placés dans un fichier secrets.json situé dans Assets/Ressources , il est non publié sur Github.
+Struture du fichier secrets.json à adapter à votre broker :
+{
+    "mqttUser": "login",
+    "mqttPassword": "password",
+    "mqttPort": 1883
+}
+
