@@ -1,0 +1,16 @@
+
+pour récuperer le SHA-1 d keystore :
+
+debug : 
+"C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe" -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -storepass android -alias androiddebugkey -keypass android
+
+Customized keystore : (par exemple didier.keystore
+"C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe" -list -v -keystore "C:\Doc_local\keystore\didier.keystore" -alias arcore_unity_gps
+
+commandes à lancer dans la console windows.
+
+Configuration pour les api google : 
+https://console.cloud.google.com/cloud-hub/home;board-filter=type:APP_HUB,key:application_name?project=inductive-world-445209-p7
+
+Allez dans API services > identifiants
+

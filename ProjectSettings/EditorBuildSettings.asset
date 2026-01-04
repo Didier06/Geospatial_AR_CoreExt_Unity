@@ -6,29 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/0-TrackingStateMonitoring.unity
-    guid: dd004a99b23c14fbbb589c0e097a89b8
-  - enabled: 0
     path: Assets/Scenes/Test1GPS.unity
     guid: 4636845a5fb4827459301331fe953309
   - enabled: 0
-    path: Assets/Samples/test1.unity
-    guid: 1da186ff91321094ebf00e0c88961e65
-  - enabled: 0
-    path: Assets/Samples/ARCore Extensions/1.52.0/Geospatial Sample/Scenes/GeospatialArf6.unity
-    guid: 756ddf877a3104469b58f6a31b0cb446
-  - enabled: 0
     path: Assets/Scenes/Quest3_manualmode.unity
     guid: b3a3344ef99b0e140ab77aed371861cd
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
-    path: Assets/Scenes/TestGPS_1.unity
-    guid: 231ba40ffa9919349b79262a9859ce4c
   - enabled: 1
-    path: Assets/Scenes/TestGPS_3.unity
-    guid: a50a3266b7a336a42a6b287d5a72bf12
+    path: Assets/Scenes/TestGPS_4.unity
+    guid: 0f9554891ffeef546a7b95ff9e7a863c
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 5131b9f97fdb2e44a91ed013b6abeffc, type: 2}
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 07299d016f2c6430d82b6e4b018a2b6d, type: 2}

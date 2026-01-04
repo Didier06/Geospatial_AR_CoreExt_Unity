@@ -22,7 +22,7 @@ namespace AR_GPS
         private bool _isReady = false;
         public bool IsReady => _isReady;
 
-        public bool _lockScreenToPortrait = true;
+        public bool _lockScreenToPortrait = false;
 
         void Awake()
         {
@@ -32,6 +32,15 @@ namespace AR_GPS
                 Screen.autorotateToLandscapeLeft = false;
                 Screen.autorotateToLandscapeRight = false;
                 Screen.autorotateToPortraitUpsideDown = false;
+            }
+            else
+            {
+                // Active la rotation automatique
+                Screen.orientation = ScreenOrientation.AutoRotation;
+                Screen.autorotateToLandscapeLeft = true;
+                Screen.autorotateToLandscapeRight = true;
+                Screen.autorotateToPortrait = true;
+                Screen.autorotateToPortraitUpsideDown = true;
             }
 
             Application.targetFrameRate = 60;

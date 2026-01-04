@@ -10,10 +10,10 @@ public class MqttManager : MonoBehaviour
 {
     [Header("MQTT Configuration")]
     public string mqttBroker = "mqtt.univ-cotedazur.fr";
-    public int mqttPort = 8443;
+    public int mqttPort = 1883;
     public string mqttTopic = "FABLAB_21_22/unity/testgps/in";
-    public string username = "fablab2122";
-    public string password = "2122";
+    private string username = "";
+    private string password = "";
     public bool processMessages = true;
 
     [Header("Out Configuration")]
@@ -29,6 +29,19 @@ public class MqttManager : MonoBehaviour
 
     void Start()
     {
+        if (SecretsLoader.Data != null)
+        {
+            username = SecretsLoader.Data.mqttUser;
+            password = SecretsLoader.Data.mqttPassword;
+            mqttPort = SecretsLoader.Data.mqttPort;
+        }
+        else
+        {
+            Debug.LogError("SecretsLoader.Data is null. Make sure SecretsLoader is in the scene or secrets.json is loaded.");
+            // Fallback loading check if SecretsLoader is not in scene but file exists? 
+            // Better to rely on the Loader pattern 
+        }
+
         StartCoroutine(ConnectionRoutine());
     }
 
@@ -48,11 +61,11 @@ public class MqttManager : MonoBehaviour
     {
         try
         {
-            if(client != null && client.IsConnected) return;
+            if (client != null && client.IsConnected) return;
 
             // Attempting SSL connection on port 8443
             client = new MqttClient(mqttBroker, mqttPort, true, MqttSslProtocols.TLSv1_2, null, null);
-            
+
             string clientId = Guid.NewGuid().ToString();
             client.Connect(clientId, username, password);
 
@@ -63,7 +76,7 @@ public class MqttManager : MonoBehaviour
                 client.ConnectionClosed += Client_ConnectionClosed;
                 client.Subscribe(new string[] { mqttTopic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
 
-                 // Send Hello Message
+                // Send Hello Message
                 string helloMsg = "Hello from unity !";
                 client.Publish(mqttTopicOut, Encoding.UTF8.GetBytes(helloMsg), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
                 Debug.Log("Sent Hello message to: " + mqttTopicOut);
