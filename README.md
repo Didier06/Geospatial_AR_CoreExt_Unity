@@ -1,15 +1,18 @@
 # Unity ARCore Geospatial Test Project
 
-This project is a test application developed with Unity to explore the features of the ARCore Geospatial API. It allows you to place 3D objects at precise GPS coordinates in the real world using augmented reality.
+This project is a test application developed with Unity to explore the features of the ARCore Geospatial API. It allows placing 3D objects at precise GPS coordinates in the real world using augmented reality.
 
-## 🛠 Technologies Used
+Objects can also be dynamically added, moved, or deleted at runtime via MQTT messages encoded in JSON.
 
-* **Game engine**: Unity (Compatible with Unity 6)
+## Technologies Used
+
+* **Game Engine**: Unity (Compatible with Unity 6)
 * **AR Foundation**: Version 6.3
 * **ARCore Extensions**: Version 1.52
-* **Target platform**: Android (ARCore-compatible devices)
+* **Target Platform**: Android (ARCore-compatible devices)
+* **Messaging**: MQTT (JSON-formatted payloads)
 
-## 📂 Project Structure
+## Project Structure
 
 The Unity project is located in the `ProjectExamples` folder.
 
@@ -17,80 +20,118 @@ The Unity project is located in the `ProjectExamples` folder.
 
 Several scenes are available to test different placement and tracking features:
 
-* **`Scenes/TestGPS_1.unity`**: Test scene to confirm the placement of objects at a specific latitude/longitude.
-* **`Scenes/TestGPS_2.unity`**: Additional scene for location testing.
-* **`Scenes/TestGPS_3.unity`**: Advanced (or alternative) scene for geospatial placement.
-* **`Scenes/Tap_To_Place.unity`**: Scene that likely allows objects to be placed manually via touch interaction (raycasting).
-* **`Scenes/TestGPS_4.unity`**: Scene designed for dynamic object placement via MQTT. It listens for JSON commands to spawn and move prefabs at runtime.
-* **`Samples/ARCore Extensions/.../GeospatialArf6.unity`**: The official example provided by Google for AR Foundation 6.
+* **`Scenes/TestGPS_1.unity`** – Test scene to confirm object placement at a specific latitude/longitude
+* **`Scenes/TestGPS_2.unity`** – Additional scene for location testing
+* **`Scenes/TestGPS_3.unity`** – Advanced (or alternative) scene for geospatial placement
+* **`Scenes/TestGPS_4.unity`** – Scene using **dynamic prefab placement via MQTT and JSON messages**
+* **`Scenes/Tap_To_Place.unity`** – Manual placement using touch raycasts
+* **`Samples/ARCore Extensions/.../GeospatialArf6.unity`** – Official Google AR Foundation 6 sample
 
-## 🚀 Installation and Configuration
+## Available Prefabs (For Geospatial Placement)
 
-1. **Open the project**:
+These prefabs are available in the built-in prefab library and can be instantiated dynamically by name via MQTT JSON commands:
 
-* Launch Unity Hub.
-* Open the project's root folder located in `ProjectExamples`.
+| Name in JSON        | Description              |
+| ------------------- | ------------------------ |
+| **stirling_engine** | Stirling engine 3D model |
+| **PrefabFablab**    | FabLab building/model    |
+| **Cube**            | Standard Unity Cube      |
+| **Cylinder**        | Standard Unity Cylinder  |
 
-1. **Configure the API Key**:
-    * For Geospatial features to work, you must have a valid Google Cloud API key with **ARCore API** and **Geospatial API** enabled.
+✔ Names must match exactly to be recognized
+✔ One active object exists per name
 
-* In Unity, go to `Edit > Project Settings > XR Plug-in Management > ARCore Extensions`.
-* Ensure your API key is entered in the corresponding field for Android.
 
-1. **Build on Android:**
+## Installation and Configuration
 
-* Connect your Android device in developer mode.
-* Go to `File > Build Settings`.
-* Select the scene you want to test (add it to the list if necessary).
-* Click **Build And Run**.
+1. **Open the project**
 
-## 📱 Usage
+   * Launch Unity Hub
+   * Open the `ProjectExamples` folder
 
-* When launching the application, accept the permissions for **Camera** and **Location** (precise).
-* The system will attempt to locate itself (VPS - Visual Positioning System). It is recommended that you be outdoors in an area covered by Google Street View for optimal accuracy.
-* Once located, the objects defined in the scene should appear at their respective geographical coordinates.
+2. **API Key Configuration**
 
-## 📡 MQTT Control (TestGPS_4)
+   * A valid Google Cloud API Key is required with:
 
-The `TestGPS_4` scene features a dynamic loading system powered by MQTT.
+     * **ARCore API**
+     * **Geospatial API**
+   * Configure in:
 
-### Configuration
+     ```
+     Edit → Project Settings → XR Plug-in Management → ARCore Extensions
+     ```
 
-* **Broker**: `mqtt.univ-cotedazur.fr` (Port 8443, SSL/TLS)
-* **Topic IN (Commands)**: `FABLAB_21_22/unity/testgps/in`
-* **Topic OUT (Feedback)**: `FABLAB_21_22/unity/testgps/out`
+3. **Build on Android**
 
-### Remote Control via JSON
+   * Activate developer mode
+   * Connect device via USB
+   * Open:
 
-To place or move objects, send a JSON payload to the **IN** topic.
+     ```
+     File → Build Settings
+     ```
+   * Select your test scene(s)
+   * Click **Build And Run**
 
-* **`name`**: Must match exactly the name of a prefab in the `Prefab Library` (script *Listeprefabs2*).
-* **`altitudeOffset`**: Height relative to the detected ground/VPS anchor.
+---
 
-**JSON Example:**
+## Dynamic Object Placement via MQTT
+
+### Add or Move an Object
 
 ```json
 {
   "items": [
     {
-      "name": "Cylinder",
-      "latitude": 43.80584,
-      "longitude": 7.305819,
-      "altitudeOffset": 3
-    },
-    {
       "name": "Cube",
-      "latitude": 43.80580,
-      "longitude": 7.30616,
-      "altitudeOffset": -1.5
+      "latitude": 43.700000,
+      "longitude": 7.260000,
+      "altitudeOffset": 0
     }
   ]
 }
 ```
 
+If the object already exists, it will smoothly move to the new location.
+
+### Delete an Object
+
+```json
+{
+  "items": [
+    {
+      "name": "Cube",
+      "delete": true
+    }
+  ]
+}
+```
+
+Only that object is removed.
+Other objects remain visible.
+
+### System Behaviour
+
+✔ Objects not referenced remain
+✔ Updates can be sent on demand
+✔ Anchor tracking ensures stability
+✔ A smoothing follower reduces visual jitter
+
+## Usage
+
+When starting the application:
+
+✔ Allow **Camera access**
+✔ Allow **Precise Location access**
+
+The system initializes ARCore + Geospatial tracking.
+Best accuracy is obtained outdoors with open sky visibility.
+
 ## ⚠️ Important Notes
 
-* Ensure that your device supports **ARCore Geospatial API**.
-* An internet connection is required to download VPS location data.
+* Device must support **ARCore Geospatial API**
+* Internet connectivity is required for VPS data
+* Accuracy improves with motion and sky visibility
+* Objects are positioned using:
+  Geospatial Anchor + Local Smoothing to minimize visual jumps
 
-![Aperçu du projet](images/TestGPS_2.jpg)
