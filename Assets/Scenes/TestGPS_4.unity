@@ -581,6 +581,7 @@ MonoBehaviour:
   mqttPort: 1883
   mqttTopic: FABLAB_21_22/unity/testgps/in
   processMessages: 1
+  minUpdateInterval: 0.5
   mqttTopicOut: FABLAB_21_22/unity/testgps/out
   reconnectDelay: 5
   prefabManager: {fileID: 2020429706}
@@ -748,14 +749,14 @@ MonoBehaviour:
   ItemsToPlace:
   - name: 1
     prefab: {fileID: 1801801381642449970, guid: da542a76ee65ecd43ad71bc86de1f683, type: 3}
-    latitude: 43.805837489842446
-    longitude: 7.30581900161067
-    altitudeOffset: 4
+    latitude: 43.71741976662532
+    longitude: 7.268038073352198
+    altitudeOffset: 15
   - name: 2
     prefab: {fileID: 3939746580345601704, guid: 870959044e22b7d47ae73602d1e24259, type: 3}
-    latitude: 43.805680005615216
-    longitude: 7.305708355412591
-    altitudeOffset: 5
+    latitude: 43.71692957504691
+    longitude: 7.266714304629989
+    altitudeOffset: 30
   PrefabLibrary:
   - {fileID: 5272624422121822155, guid: 72b9f935d6a78104babcbda9b2ed23cc, type: 3}
   - {fileID: 1801801381642449970, guid: da542a76ee65ecd43ad71bc86de1f683, type: 3}

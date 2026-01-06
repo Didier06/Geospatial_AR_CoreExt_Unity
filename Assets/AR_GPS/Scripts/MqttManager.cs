@@ -16,6 +16,9 @@ public class MqttManager : MonoBehaviour
     private string password = "";
     public bool processMessages = true;
 
+    public float minUpdateInterval = 0.5f;
+    private float lastUpdateTime = 0f;
+
     [Header("Out Configuration")]
     public string mqttTopicOut = "FABLAB_21_22/unity/testgps/out";
     public float reconnectDelay = 5.0f;
@@ -105,6 +108,11 @@ public class MqttManager : MonoBehaviour
         // Process received messages on the main thread
         if (processMessages && !messageQueue.IsEmpty)
         {
+            if (Time.time - lastUpdateTime < minUpdateInterval)
+                return;
+
+            lastUpdateTime = Time.time;
+
             string msg;
             while (messageQueue.TryDequeue(out msg))
             {

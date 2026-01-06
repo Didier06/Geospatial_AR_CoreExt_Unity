@@ -20,25 +20,21 @@ namespace AR_GPS
         public double latitude;
         public double longitude;
         public double altitudeOffset = -1.5f;
+        public bool delete = false;
     }
 
     [System.Serializable]
     public class GeoPrefabListWrapper
     {
-        public List<GeoPrefabData> items;
-    }
-
-    [System.Serializable]
-    public class GeoPrefabData
-    {
-        public string name;
-        public double latitude;
-        public double longitude;
-        public double altitudeOffset;
+        public List<GeoPrefab2> items;
     }
 
     public class Listeprefabs2 : MonoBehaviour
     {
+        private Dictionary<string, ARGeospatialAnchor> activeAnchors = new Dictionary<string, ARGeospatialAnchor>();
+
+        private Dictionary<string, GameObject> activeObjects = new Dictionary<string, GameObject>();
+
         public AREarthManager EarthManager;
         public VpsInitializer Initializer;
         public Text OutputText;
@@ -60,6 +56,19 @@ namespace AR_GPS
         // 👉 Pour éviter de créer plusieurs fois
         private bool placed = false;
 
+        float GetHeadingFromPose(GeospatialPose pose)
+        {
+            Quaternion r = pose.EunRotation;
+
+            float yaw = Mathf.Atan2(
+                2f * (r.w * r.y + r.x * r.z),
+                1f - 2f * (r.y * r.y + r.z * r.z)
+            ) * Mathf.Rad2Deg;
+
+            if (yaw < 0) yaw += 360f;
+
+            return yaw;
+        }
 
         void Update()
         {
@@ -88,26 +97,88 @@ namespace AR_GPS
 
         void PlaceAllPrefabs(GeospatialPose camPose)
         {
+            // Objets encore présents dans le JSON courant
+            HashSet<string> stillPresent = new HashSet<string>();
+
             foreach (var item in ItemsToPlace)
             {
-                Quaternion rot = Quaternion.AngleAxis(
-                    180f - (float)camPose.Heading, Vector3.up);
+                // suppression demandée
+                if (item.delete)
+                {
+                    if (activeAnchors.ContainsKey(item.name))
+                    {
+                        Destroy(activeAnchors[item.name].gameObject);
+                        activeAnchors.Remove(item.name);
+                    }
+
+                    if (activeObjects.ContainsKey(item.name))
+                    {
+                        Destroy(activeObjects[item.name]);
+                        activeObjects.Remove(item.name);
+                    }
+
+                    continue;
+                }
+
+                stillPresent.Add(item.name);
+
+                float heading = GetHeadingFromPose(camPose);
+                Quaternion rot = Quaternion.AngleAxis(180f - heading, Vector3.up);
 
                 double altitude = camPose.Altitude + item.altitudeOffset;
 
-                ARGeospatialAnchor anchor = AnchorManager.AddAnchor(
+                // Si l’objet existe déjà : on recrée simplement son anchor
+                if (activeAnchors.ContainsKey(item.name))
+                {
+                    // détruire l’ancien anchor
+                    var oldAnchor = activeAnchors[item.name];
+                    if (oldAnchor != null)
+                        Destroy(oldAnchor.gameObject);
+
+                    // créer un nouvel anchor à la nouvelle position
+                    var newAnchor = AnchorManager.AddAnchor(
+                        item.latitude,
+                        item.longitude,
+                        altitude,
+                        rot
+                    );
+
+                    activeAnchors[item.name] = newAnchor;
+
+                    // mettre à jour le follower pour suivre le nouvel anchor
+                    if (activeObjects.ContainsKey(item.name))
+                    {
+                        var follower = activeObjects[item.name].GetComponent<GeoTargetFollower>();
+                        if (follower != null)
+                            follower.anchor = newAnchor != null ? newAnchor.transform : null;
+                    }
+
+                    continue;
+                }
+
+                // Nouvel objet : créer anchor + prefab
+                var anchor = AnchorManager.AddAnchor(
                     item.latitude,
                     item.longitude,
                     altitude,
                     rot
                 );
 
-                if (anchor != null && item.prefab != null)
-                {
-                    GameObject go = Instantiate(item.prefab, anchor.transform);
-                    spawnedInstances.Add(go);
-                }
+                if (anchor == null || item.prefab == null)
+                    continue;
+
+                GameObject go = Instantiate(item.prefab);
+
+                var f = go.AddComponent<GeoTargetFollower>();
+                f.anchor = anchor.transform;
+                f.smoothTime = 0.35f;
+                f.rotSmooth = 0.15f;
+
+                activeAnchors[item.name] = anchor;
+                activeObjects[item.name] = go;
             }
+
+
         }
 
         public void UpdatePrefabsFromJSON(string json)
@@ -125,7 +196,7 @@ namespace AR_GPS
                 GeoPrefabListWrapper wrapper = JsonUtility.FromJson<GeoPrefabListWrapper>(json);
                 if (wrapper != null && wrapper.items != null)
                 {
-                    ClearCurrentInstances();
+                    //ClearCurrentInstances();
                     ItemsToPlace.Clear();
 
                     Debug.Log($"[Listeprefabs2] Parsing success. Items count: {wrapper.items.Count}");
@@ -136,7 +207,7 @@ namespace AR_GPS
                         string searchName = data.name.Trim();
                         // Safe check for nulls in list
                         GameObject prefabToUse = PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
-                        
+
                         if (prefabToUse != null)
                         {
                             Debug.Log($"[Listeprefabs2] MATCH FOUND: '{searchName}'");
@@ -160,7 +231,7 @@ namespace AR_GPS
                 }
                 else
                 {
-                     Debug.LogWarning("[Listeprefabs2] JSON Parsed but wrapper or items were null.");
+                    Debug.LogWarning("[Listeprefabs2] JSON Parsed but wrapper or items were null.");
                 }
             }
             catch (Exception e)
@@ -172,11 +243,11 @@ namespace AR_GPS
         public string GetJsonFromCurrentList()
         {
             GeoPrefabListWrapper wrapper = new GeoPrefabListWrapper();
-            wrapper.items = new List<GeoPrefabData>();
+            wrapper.items = new List<GeoPrefab2>();
 
             foreach (var item in ItemsToPlace)
             {
-                wrapper.items.Add(new GeoPrefabData
+                wrapper.items.Add(new GeoPrefab2
                 {
                     name = item.prefab != null ? item.prefab.name : item.name,
                     latitude = item.latitude,
