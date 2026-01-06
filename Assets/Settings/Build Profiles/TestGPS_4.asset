@@ -171,14 +171,6 @@ MonoBehaviour:
     - line: '|   tvOSBundleVersion: 1.0'
     - line: '|   bundleVersion: 1.1.0'
     - line: '|   preloadedAssets:'
-    - line: '|   - {fileID: 11400000, guid: e2fcd54a305139942afdf1657050b68f, type:
-        2}'
-    - line: '|   - {fileID: 5243580162655074952, guid: 7e8f3ab70bc224dbe98369b4f3fc6bcb,
-        type: 2}'
-    - line: '|   - {fileID: 4800000, guid: c9f956787b1d945e7b36e0516201fc76, type:
-        3}'
-    - line: '|   - {fileID: 4800000, guid: 0945859e5a1034c2cb6dce53cb4fb899, type:
-        3}'
     - line: '|   - {fileID: 11400000, guid: 7f6135392000b434091302d28ad96849, type:
         2}'
     - line: '|   metroInputSource: 0'
