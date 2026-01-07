@@ -77,6 +77,11 @@ These prefabs are available in the built-in prefab library and can be instantiat
 
 ## Dynamic Object Placement via MQTT
 
+### Configuration
+
+* **Topic IN (Commands)**: `FABLAB_21_22/unity/testgps/in`
+* **Topic OUT (Feedback)**: `FABLAB_21_22/unity/testgps/out`
+
 ### Add or Move an Object
 
 ```json
@@ -135,3 +140,4 @@ Best accuracy is obtained outdoors with open sky visibility.
 * Objects are positioned using:
   Geospatial Anchor + Local Smoothing to minimize visual jumps
 
+![Aperçu du projet](images/TestGPS_2.jpg)
