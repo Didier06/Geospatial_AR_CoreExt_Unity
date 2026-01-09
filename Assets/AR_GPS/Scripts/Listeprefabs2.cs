@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq; // Added for prefab search
+using System.Linq;
 
 using Google.XR.ARCoreExtensions;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-
 
 namespace AR_GPS
 {
@@ -31,9 +30,11 @@ namespace AR_GPS
 
     public class Listeprefabs2 : MonoBehaviour
     {
-        private Dictionary<string, ARGeospatialAnchor> activeAnchors = new Dictionary<string, ARGeospatialAnchor>();
+        private Dictionary<string, ARGeospatialAnchor> activeAnchors =
+            new Dictionary<string, ARGeospatialAnchor>();
 
-        private Dictionary<string, GameObject> activeObjects = new Dictionary<string, GameObject>();
+        private Dictionary<string, GameObject> activeObjects =
+            new Dictionary<string, GameObject>();
 
         public AREarthManager EarthManager;
         public VpsInitializer Initializer;
@@ -43,18 +44,19 @@ namespace AR_GPS
         public double HeadingThreshold = 25.0;
         public double HorizontalThreshold = 20.0;
 
-        // 👉 Liste des objets à placer
         public List<GeoPrefab2> ItemsToPlace = new List<GeoPrefab2>();
 
-        // 👉 Référentiel des prefabs disponibles pour le chargement dynamique
         [Header("Library of Loadable Prefabs")]
         public List<GameObject> PrefabLibrary = new List<GameObject>();
 
-        // 👉 Liste des instances créées
         private List<GameObject> spawnedInstances = new List<GameObject>();
 
-        // 👉 Pour éviter de créer plusieurs fois
+        // Placement AR actif oui/non
         private bool placed = false;
+
+        // 👉 NOUVEAU : indique qu’un JSON a été reçu
+        private bool hasPendingJson = false;
+
 
         float GetHeadingFromPose(GeospatialPose pose)
         {
@@ -69,6 +71,7 @@ namespace AR_GPS
 
             return yaw;
         }
+
 
         void Update()
         {
@@ -87,9 +90,15 @@ namespace AR_GPS
 
             ShowTracking("Good accuracy.", pose);
 
+            // 👉 si JSON est arrivé tôt → relancer un placement quand prêt
+            if (hasPendingJson && placed)
+                placed = false;
+
+            // 👉 placement AR réel
             if (!placed)
             {
                 placed = true;
+                hasPendingJson = false;   // JSON consommé
                 PlaceAllPrefabs(pose);
             }
         }
@@ -97,12 +106,10 @@ namespace AR_GPS
 
         void PlaceAllPrefabs(GeospatialPose camPose)
         {
-            // Objets encore présents dans le JSON courant
             HashSet<string> stillPresent = new HashSet<string>();
 
             foreach (var item in ItemsToPlace)
             {
-                // suppression demandée
                 if (item.delete)
                 {
                     if (activeAnchors.ContainsKey(item.name))
@@ -124,18 +131,15 @@ namespace AR_GPS
 
                 float heading = GetHeadingFromPose(camPose);
                 Quaternion rot = Quaternion.AngleAxis(180f - heading, Vector3.up);
-
                 double altitude = camPose.Altitude + item.altitudeOffset;
 
-                // Si l’objet existe déjà : on recrée simplement son anchor
+
                 if (activeAnchors.ContainsKey(item.name))
                 {
-                    // détruire l’ancien anchor
                     var oldAnchor = activeAnchors[item.name];
                     if (oldAnchor != null)
                         Destroy(oldAnchor.gameObject);
 
-                    // créer un nouvel anchor à la nouvelle position
                     var newAnchor = AnchorManager.AddAnchor(
                         item.latitude,
                         item.longitude,
@@ -145,7 +149,6 @@ namespace AR_GPS
 
                     activeAnchors[item.name] = newAnchor;
 
-                    // mettre à jour le follower pour suivre le nouvel anchor
                     if (activeObjects.ContainsKey(item.name))
                     {
                         var follower = activeObjects[item.name].GetComponent<GeoTargetFollower>();
@@ -156,7 +159,7 @@ namespace AR_GPS
                     continue;
                 }
 
-                // Nouvel objet : créer anchor + prefab
+
                 var anchor = AnchorManager.AddAnchor(
                     item.latitude,
                     item.longitude,
@@ -177,9 +180,9 @@ namespace AR_GPS
                 activeAnchors[item.name] = anchor;
                 activeObjects[item.name] = go;
             }
-
-
         }
+
+
 
         public void UpdatePrefabsFromJSON(string json)
         {
@@ -187,58 +190,46 @@ namespace AR_GPS
             {
                 if (PrefabLibrary == null)
                 {
-                    Debug.LogWarning("[Listeprefabs2] PrefabLibrary was null! Initializing empty list.");
                     PrefabLibrary = new List<GameObject>();
                 }
-
-                Debug.Log($"[Listeprefabs2] Raw JSON received ({json.Length} chars): {json}");
 
                 GeoPrefabListWrapper wrapper = JsonUtility.FromJson<GeoPrefabListWrapper>(json);
                 if (wrapper != null && wrapper.items != null)
                 {
-                    //ClearCurrentInstances();
                     ItemsToPlace.Clear();
-
-                    Debug.Log($"[Listeprefabs2] Parsing success. Items count: {wrapper.items.Count}");
-                    // Debug.Log($"[Listeprefabs2] PrefabLibrary contains {PrefabLibrary.Count} prefabs..."); 
 
                     foreach (var data in wrapper.items)
                     {
                         string searchName = data.name.Trim();
-                        // Safe check for nulls in list
-                        GameObject prefabToUse = PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
+
+                        GameObject prefabToUse =
+                            PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
 
                         if (prefabToUse != null)
                         {
-                            Debug.Log($"[Listeprefabs2] MATCH FOUND: '{searchName}'");
-                            GeoPrefab2 newGeo = new GeoPrefab2
+                            ItemsToPlace.Add(new GeoPrefab2
                             {
                                 name = data.name,
                                 prefab = prefabToUse,
                                 latitude = data.latitude,
                                 longitude = data.longitude,
                                 altitudeOffset = data.altitudeOffset
-                            };
-                            ItemsToPlace.Add(newGeo);
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"[Listeprefabs2] NO MATCH for '{searchName}'.");
+                            });
                         }
                     }
 
-                    placed = false; // Trigger re-placement in Update
-                }
-                else
-                {
-                    Debug.LogWarning("[Listeprefabs2] JSON Parsed but wrapper or items were null.");
+                    // 👉 TRIGGER PLACEMENT
+                    hasPendingJson = true;
+                    placed = false;
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[Listeprefabs2] CRITICAL ERROR: {e.GetType()} - {e.Message}\nStack: {e.StackTrace}");
+                Debug.LogError(e);
             }
         }
+
+
 
         public string GetJsonFromCurrentList()
         {
@@ -259,25 +250,6 @@ namespace AR_GPS
             return JsonUtility.ToJson(wrapper);
         }
 
-        private void ClearCurrentInstances()
-        {
-            foreach (var go in spawnedInstances)
-            {
-                if (go != null)
-                {
-                    // Destroy the anchor (parent) to clean up AR tracking
-                    if (go.transform.parent != null)
-                    {
-                        Destroy(go.transform.parent.gameObject);
-                    }
-                    else
-                    {
-                        Destroy(go);
-                    }
-                }
-            }
-            spawnedInstances.Clear();
-        }
 
 
         void ShowTracking(string status, GeospatialPose pose)
@@ -302,3 +274,4 @@ namespace AR_GPS
         }
     }
 }
+
