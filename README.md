@@ -2,7 +2,7 @@
 
 This project is a test application developed with Unity to explore the features of the ARCore Geospatial API. It allows placing 3D objects at precise GPS coordinates in the real world using augmented reality.
 
-Objects can also be dynamically added, moved, or deleted at runtime via MQTT messages encoded in JSON.
+Objects can also be dynamically added, moved, resized, or deleted at runtime via MQTT messages encoded in JSON.
 
 ## Technologies Used
 
@@ -14,7 +14,7 @@ Objects can also be dynamically added, moved, or deleted at runtime via MQTT mes
 
 ## Project Structure
 
-The Unity project is located in the `ProjectExamples` folder.
+The Unity project is located in the `Geospatial_AR_CoreExt_Unity` folder.
 
 ### Main Scenes
 
@@ -29,7 +29,10 @@ Several scenes are available to test different placement and tracking features:
 
 ## Available Prefabs (For Geospatial Placement)
 
-These prefabs are available in the built-in prefab library and can be instantiated dynamically by name via MQTT JSON commands:
+These prefabs are available in the built-in prefab library and can be instantiated dynamically by name via MQTT JSON commands.
+
+> [!NOTE]
+> At startup, any items placed in the Inspector with generic names (e.g., "1", "2") are automatically renamed to their Prefab name. This simplifies control via MQTT.
 
 | Name in JSON        | Description              |
 | ------------------- | ------------------------ |
@@ -37,43 +40,7 @@ These prefabs are available in the built-in prefab library and can be instantiat
 | **PrefabFablab**    | FabLab building/model    |
 | **Cube**            | Standard Unity Cube      |
 | **Cylinder**        | Standard Unity Cylinder  |
-
-✔ Names must match exactly to be recognized
-✔ One active object exists per name
-
-
-## Installation and Configuration
-
-1. **Open the project**
-
-   * Launch Unity Hub
-   * Open the `ProjectExamples` folder
-
-2. **API Key Configuration**
-
-   * A valid Google Cloud API Key is required with:
-
-     * **ARCore API**
-     * **Geospatial API**
-   * Configure in:
-
-     ```
-     Edit → Project Settings → XR Plug-in Management → ARCore Extensions
-     ```
-
-3. **Build on Android**
-
-   * Activate developer mode
-   * Connect device via USB
-   * Open:
-
-     ```
-     File → Build Settings
-     ```
-   * Select your test scene(s)
-   * Click **Build And Run**
-
----
+| **saturn**          | Saturn planet model      |
 
 ## Dynamic Object Placement via MQTT
 
@@ -82,62 +49,75 @@ These prefabs are available in the built-in prefab library and can be instantiat
 * **Topic IN (Commands)**: `FABLAB_21_22/unity/testgps/in`
 * **Topic OUT (Feedback)**: `FABLAB_21_22/unity/testgps/out`
 
-### Add or Move an Object
+### Add, Move or Scale an Object
+
+To place or update an object, send a JSON message to the **Topic IN**:
 
 ```json
 {
   "items": [
     {
-      "name": "Cube",
+      "name": "saturn",
       "latitude": 43.700000,
       "longitude": 7.260000,
-      "altitudeOffset": 0
+      "altitudeOffset": 15,
+      "scale": 2.5
     }
   ]
 }
 ```
 
-If the object already exists, it will smoothly move to the new location.
+* **name**: Must match one of the available prefabs.
+* **latitude / longitude**: GPS coordinates.
+* **altitudeOffset**: Height in meters relative to the ground (VPS estimate).
+* **scale** (Optional): Uniform scale factor (X, Y, Z). If omitted or 0, the prefab's default scale is used.
 
 ### Delete an Object
+
+To remove an object from the scene:
 
 ```json
 {
   "items": [
     {
-      "name": "Cube",
+      "name": "saturn",
       "delete": true
     }
   ]
 }
 ```
 
-Only that object is removed.
-Other objects remain visible.
+## Installation and Configuration
 
-### System Behaviour
+1. **Open the project**
+   * Launch Unity Hub
+   * Open the project folder
 
-✔ Objects not referenced remain
-✔ Updates can be sent on demand
-✔ Anchor tracking ensures stability
-✔ A smoothing follower reduces visual jitter
+2. **API Key Configuration**
+   * A valid Google Cloud API Key is required with connected:
+     * **ARCore API**
+     * **Geospatial API**
+   * Configure in: `Edit → Project Settings → XR Plug-in Management → ARCore Extensions`
+
+3. **Build on Android**
+   * Activate developer mode on your phone
+   * Connect device via USB
+   * Open: `File → Build Settings`
+   * Select your test scene (e.g., `TestGPS_4`)
+   * Click **Build And Run**
 
 ## Usage
 
 When starting the application:
 
-✔ Allow **Camera access**
-✔ Allow **Precise Location access**
+1. Allow **Camera access**
+2. Allow **Precise Location access**
 
-The system initializes ARCore + Geospatial tracking.
-Best accuracy is obtained outdoors with open sky visibility.
+The system initializes ARCore + Geospatial tracking. Best accuracy is obtained outdoors with good sky visibility.
 
 ## ⚠️ Important Notes
 
 * Device must support **ARCore Geospatial API**
-* Internet connectivity is required for VPS data
+* Internet connectivity is required for VPS data downloading
 * Accuracy improves with motion and sky visibility
-* Objects are positioned using:
-  Geospatial Anchor + Local Smoothing to minimize visual jumps
-
-![Aperçu du projet](images/TestGPS_2.jpg)
+* Objects are positioned using **Geospatial Anchors** for stability

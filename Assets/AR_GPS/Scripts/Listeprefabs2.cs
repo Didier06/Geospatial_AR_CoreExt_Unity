@@ -20,6 +20,7 @@ namespace AR_GPS
         public double longitude;
         public double altitudeOffset = -1.5f;
         public bool delete = false;
+        public float scale = 0f; // 0 = use Prefab scale
     }
 
     [System.Serializable]
@@ -151,9 +152,17 @@ namespace AR_GPS
 
                     if (activeObjects.ContainsKey(item.name))
                     {
-                        var follower = activeObjects[item.name].GetComponent<GeoTargetFollower>();
+                        GameObject obj = activeObjects[item.name];
+                        var follower = obj.GetComponent<GeoTargetFollower>();
+
                         if (follower != null)
                             follower.anchor = newAnchor != null ? newAnchor.transform : null;
+
+                        // 👉 UPDATE SCALE (if changed dynamically)
+                        if (item.scale > 0)
+                        {
+                            obj.transform.localScale = Vector3.one * item.scale;
+                        }
                     }
 
                     continue;
@@ -171,6 +180,12 @@ namespace AR_GPS
                     continue;
 
                 GameObject go = Instantiate(item.prefab);
+                
+                // 👉 APPLY SCALE
+                if (item.scale > 0)
+                {
+                    go.transform.localScale = Vector3.one * item.scale;
+                }
 
                 var f = go.AddComponent<GeoTargetFollower>();
                 f.anchor = anchor.transform;
@@ -184,6 +199,27 @@ namespace AR_GPS
 
 
 
+        void Start()
+        {
+            // Initialization: Standardize names of items set in Inspector
+            // This ensures "1" becomes "PrefabFablab", making it easy to control via MQTT.
+            if (ItemsToPlace != null)
+            {
+                foreach (var item in ItemsToPlace)
+                {
+                    if (item.prefab != null)
+                    {
+                        // If name is generic (like "1", "2", "Element 0"), rename to Prefab name
+                        if (string.IsNullOrEmpty(item.name) || item.name.Length <= 2 || item.name.StartsWith("Element"))
+                        {
+                            item.name = item.prefab.name;
+                            Debug.Log($"[Auto-Rename] Renamed item to '{item.name}' for easier MQTT control.");
+                        }
+                    }
+                }
+            }
+        }
+
         public void UpdatePrefabsFromJSON(string json)
         {
             try
@@ -196,25 +232,55 @@ namespace AR_GPS
                 GeoPrefabListWrapper wrapper = JsonUtility.FromJson<GeoPrefabListWrapper>(json);
                 if (wrapper != null && wrapper.items != null)
                 {
-                    ItemsToPlace.Clear();
-
                     foreach (var data in wrapper.items)
                     {
                         string searchName = data.name.Trim();
 
-                        GameObject prefabToUse =
-                            PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
+                        // Simplified Logic: Match strictly by Name
+                        // Since Start() now renames items to match prefabs, this "simple" logic works perfectly.
+                        var existingItem = ItemsToPlace.FirstOrDefault(x => x.name == searchName);
 
-                        if (prefabToUse != null)
+                        if (existingItem != null)
                         {
-                            ItemsToPlace.Add(new GeoPrefab2
+                            // UPDATE existing
+                            existingItem.latitude = data.latitude;
+                            existingItem.longitude = data.longitude;
+                            existingItem.altitudeOffset = data.altitudeOffset;
+                            existingItem.delete = data.delete;
+                            existingItem.scale = data.scale; // 👉 COPY SCALE
+
+                            Debug.Log($"MQTT Updated Item: '{existingItem.name}'");
+
+                            // Optional: Update prefab if changed
+                            GameObject prefabToUse = PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
+                            if (prefabToUse != null)
                             {
-                                name = data.name,
-                                prefab = prefabToUse,
-                                latitude = data.latitude,
-                                longitude = data.longitude,
-                                altitudeOffset = data.altitudeOffset
-                            });
+                                existingItem.prefab = prefabToUse;
+                            }
+                        }
+                        else
+                        {
+                            // CREATE new
+                            GameObject prefabToUse = PrefabLibrary.FirstOrDefault(p => p != null && p.name == searchName);
+
+                            if (prefabToUse != null)
+                            {
+                                Debug.Log($"MQTT Creating New Item: '{data.name}'");
+                                ItemsToPlace.Add(new GeoPrefab2
+                                {
+                                    name = data.name,
+                                    prefab = prefabToUse,
+                                    latitude = data.latitude,
+                                    longitude = data.longitude,
+                                    altitudeOffset = data.altitudeOffset,
+                                    delete = data.delete,
+                                    scale = data.scale // 👉 COPY SCALE
+                                });
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"MQTT Warning: Prefab '{searchName}' not found in library.");
+                            }
                         }
                     }
 
@@ -225,7 +291,7 @@ namespace AR_GPS
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                Debug.LogError("Error handling MQTT message: " + e);
             }
         }
 
